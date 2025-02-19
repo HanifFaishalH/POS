@@ -10,6 +10,6 @@
     <h1>Personal Information</h1>
     <br>
     <p>Name     : {{ $name }}</p>
-    <p>Email    : {{ $email }}</p>
+    <p>ID       : {{ $id }}</p>
 </body>
 </html>

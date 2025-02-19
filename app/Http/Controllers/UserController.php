@@ -8,7 +8,7 @@ class UserController extends Controller
 {
     public function user() {
         return view('user')
-        -> with(['name' => 'Gustavo'])
-        -> with(['email' => 'Gustavo@fring.com']);
+        -> with(['name' => 'Hilmi'])
+        -> with(['id' => '15']);
     }
 }
