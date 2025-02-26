@@ -5,6 +5,7 @@ use App\Http\Controllers\BeautynHealthController;
 use App\Http\Controllers\FnBController;
 use App\Http\Controllers\HomeCareController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -20,13 +21,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [HomeController::class, 'index']);
+// Route::get('/', [HomeController::class, 'index']);
 
-Route::get('/food-beverage', [FnBController::class, 'fnb']);
-Route::get('/beauty-healthy', [BeautynHealthController::class, 'bnh']);
-Route::get('/home-care', [HomeCareController::class, 'homecare']);
-Route::get('/baby-kid', [BabyKidController::class, 'babykid']);
+// Route::get('/food-beverage', [FnBController::class, 'fnb']);
+// Route::get('/beauty-healthy', [BeautynHealthController::class, 'bnh']);
+// Route::get('/home-care', [HomeCareController::class, 'homecare']);
+// Route::get('/baby-kid', [BabyKidController::class, 'babykid']);
 
-Route::get('/user', [UserController::class, 'user']);
-Route::get('/sales', [SalesController::class, 'sales']);
+// Route::get('/user', [UserController::class, 'user']);
+// Route::get('/sales', [SalesController::class, 'sales']);
 
+Route::get('/', function () {
+    return view('welcome');
+});
+Route::get('/level',  [LevelController::class, 'index']);
