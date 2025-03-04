@@ -12,6 +12,16 @@ class UserController extends Controller
 {
    public function index() {
         
+        // $data = [
+        //     'level_id' => 2,
+        //     'username' => 'manager_dua',
+        //     'nama' => 'Manager Dua',
+        //     'password' => Hash::make('12345'),
+        // ];
+        // UserModel::create($data);
+
+        // $user = UserModel::all();
+        // return view('user', ['data' => $user]);
         // $user = UserModel::find(1);
         // return view('user', ['data' => $user]);
 
@@ -22,7 +32,10 @@ class UserController extends Controller
         //     abort(404);
         // });
         
-        $user = UserModel::where('username', 'manager9')->firstOrFail();
+        // $user = UserModel::where('username', 'manager9')->firstOrFail();
+
+        $user = UserModel::where('level_id', 2)->count();
+        // dd($user);
         return view('user', ['data' => $user]);
     }
 }
