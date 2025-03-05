@@ -11,12 +11,18 @@
     <table border="1" cellpadding="2" cellspacing="0">
         <thead>
             <tr>
-                <th>Jumlah Pengguna</th>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Nama</th>
+                <th>Id Level Pengguna</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>{{ $data }}</td>
+                <td>{{ $data->user_id }}</td>
+                <td>{{ $data->username }}</td>
+                <td>{{ $data->nama }}</td>
+                <td>{{ $data->level_id }}</td>
             </tr>
         </tbody>
     </table>
