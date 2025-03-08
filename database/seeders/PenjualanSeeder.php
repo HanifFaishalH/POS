@@ -1,101 +1,33 @@
 <?php
 
+// database/seeders/PenjualanSeeder.php
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
+
 class PenjualanSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
         $faker = Faker::create();
-        $data = [
-            [
-                'user_id' => 1,
+
+        // Ambil user_id yang valid dari tabel m_user
+        $userIds = DB::table('m_user')->pluck('user_id')->toArray();
+
+        $data = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $data[] = [
+                'user_id' => $userIds[array_rand($userIds)], // Ambil user_id secara acak
                 'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX001',
+                'penjualan_kode' => 'TRX' . str_pad($i, 3, '0', STR_PAD_LEFT), // Generate kode penjualan
                 'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
-            [
-                'user_id' => 2,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX002',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 1,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX003',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 2,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX004',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 1,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX005',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 2,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX006',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 1,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX007',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 2,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX008',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 1,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX009',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'user_id' => 2,
-                'pembeli' => $faker->name,
-                'penjualan_kode' => 'TRX010',
-                'penjualan_tanggal' => $faker->dateTimeBetween('-1 month', 'now'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ];
+            ];
+        }
+
         DB::table('t_penjualan')->insert($data);
     }
 }
