@@ -21,6 +21,6 @@ class BarangModel extends Model
 
     public function kategori()
     {
-        return $this->belongsTo(KategoriModel::class, 'kategori_id'.'kategori_id');
+        return $this->hasOne(KategoriModel::class, 'kategori_id', 'kategori_id');
     }
 }

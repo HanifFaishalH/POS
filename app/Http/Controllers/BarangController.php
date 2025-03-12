@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BarangModel;
 use App\Models\KategoriModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class BarangController extends Controller
@@ -35,13 +36,15 @@ class BarangController extends Controller
     // Ambil data user dalam bentuk json untuk datatables
     public function list(Request $request)
     {
+        DB::enableQueryLog();
         $barang = BarangModel::select('barang_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual', 'kategori_id')
-            ->with('kategori'); // Eager load relasi kategori
+            ->with(['kategori']); // Eager load relasi kategori
 
         if ($request->kategori_id) {
             $barang->where('kategori_id', $request->kategori_id);
         }
 
+    
         return DataTables::of($barang)
             ->addIndexColumn() // Menambahkan kolom index / no urut
             ->addColumn('aksi', function ($barang) { // Menambahkan kolom aksi
