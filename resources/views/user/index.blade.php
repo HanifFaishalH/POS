@@ -1,11 +1,15 @@
 @extends('layouts.template')
 
 @section('content')
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true">
+        <!-- Modal content will be loaded here -->
+    </div>
     <div class="card card-outline card-primary">
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('user/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('user/create_ajax') }}')" class="btn btn-sm btn-primary mt-1">Tambah Ajax</button>
             </div>
         </div>
         <div class="card-body">
@@ -53,67 +57,38 @@
 
 @push('js')
     <script>
-        $(document).ready(function () {
-            var dataUser = $('#table_user').DataTable({
-                serverSide: true, // Aktifkan server-side processing
+        function modalAction(url = '') {
+            $('#myModal').load(url, function() {
+                $('#myModal').modal('show');
+            });
+        }
+
+        var dataUser;
+        $(document).ready(function() {
+            dataUser = $('#table_user').DataTable({
+                serverSide: true,
                 ajax: {
                     url: "{{ url('user/list') }}",
-                    type: "POST",
                     dataType: "json",
+                    type: "POST",
                     data: function (d) {
-                        d.level_id = $('#level_id').val(); // Kirim nilai filter ke server
-                        d._token = "{{ csrf_token() }}"; // Tambahkan CSRF token
+                        d.level_id = $('#level_id').val();
                     }
                 },
                 columns: [
-                    {
-                        data: "DT_RowIndex", // Kolom nomor urut
-                        className: "text-center",
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: "username",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "nama",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "level_id",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "level.level_kode", // Sesuaikan dengan relasi di model
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: "level.level_nama", // Sesuaikan dengan relasi di model
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: "aksi",
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    }
+                    { data: "user_id", name: "user_id" },
+                    { data: "username", name: "username" },
+                    { data: "nama", name: "nama" },
+                    { data: "level_id", name: "level_id" },
+                    { data: "level.level_kode", name: "level.level_kode" },
+                    { data: "level.level_nama", name: "level.level_nama" },
+                    { data: "aksi", name: "aksi", orderable: false, searchable: false }
                 ]
             });
 
-            // Event ketika filter diubah
-            $('#level_id').on('change', function () {
-                dataUser.ajax.reload(); // Reload DataTables
+            // Reload table when filter changes
+            $('#level_id').on('change', function() {
+                dataUser.ajax.reload();
             });
         });
     </script>
