@@ -1,11 +1,15 @@
 @extends('layouts.template')
 
 @section('content')
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true">
+        <!-- Modal content will be loaded here -->
+    </div>
     <div class="card card-outline card-primary">
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('barang/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('barang/create_ajax') }}')" class="btn btn-sm btn-primary mt-1">Tambah Barang</button>
             </div>
         </div>
         <div class="card-body">
@@ -21,7 +25,7 @@
                         <label class="col-1 control-label col-form-label">Filter:</label>
                         <div class="col-3">
                             <select class="form-control" id="kategori_id" name="kategori_id">
-                                <option value="">- Pilih Kategori -</option>
+                                <option value="">- Semua Kategori -</option>
                                 @foreach($kategori as $item)
                                     <option value="{{ $item->kategori_id }}">{{ $item->kategori_nama }}</option>
                                 @endforeach
@@ -35,11 +39,11 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Kategori</th>
                         <th>Kode Barang</th>
                         <th>Nama Barang</th>
                         <th>Harga Beli</th>
                         <th>Harga Jual</th>
-                        <th>Kategori</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -53,67 +57,42 @@
 
 @push('js')
     <script>
-        $(document).ready(function () {
-            var dataBarang = $('#table_barang').DataTable({
-                serverSide: true, // Aktifkan server-side processing
+        function modalAction(url = '') {
+            $('#myModal').load(url, function(response, status, xhr) {
+                if (status == "error") {
+                    $('#myModal').html('<div class="alert alert-danger">Gagal memuat konten. Silakan coba lagi.</div>');
+                }
+                $('#myModal').modal('show');
+            });
+        }
+
+        var dataBarang;
+        $(document).ready(function() {
+            dataBarang = $('#table_barang').DataTable({
+                serverSide: true,
                 ajax: {
-                    url: "{{ url('barang/list') }}", // Endpoint untuk mengambil data barang
-                    type: "POST",
+                    url: "{{ url('barang/list') }}",
                     dataType: "json",
+                    type: "POST",
                     data: function (d) {
-                        d.kategori_id = $('#kategori_id').val(); // Kirim nilai filter kategori ke server
-                        d._token = "{{ csrf_token() }}"; // Tambahkan CSRF token
+                        d._token = "{{ csrf_token() }}";
+                        d.kategori_id = $('#kategori_id').val(); // Kirim filter kategori_id ke server
                     }
                 },
                 columns: [
-                    {
-                        data: "DT_RowIndex", // Kolom nomor urut
-                        className: "text-center",
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: "barang_kode",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "barang_nama",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "harga_beli",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "harga_jual",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "kategori.kategori_nama", // Sesuaikan dengan relasi di model
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: "aksi",
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    }
+                    { data: "barang_id", name: "barang_id" },
+                    { data: "kategori.kategori_nama", name: "kategori.kategori_nama" },
+                    { data: "barang_kode", name: "barang_kode" },
+                    { data: "barang_nama", name: "barang_nama" },
+                    { data: "harga_beli", name: "harga_beli" },
+                    { data: "harga_jual", name: "harga_jual" },
+                    { data: "aksi", name: "aksi", orderable: false, searchable: false }
                 ]
             });
 
-            // Event ketika filter kategori diubah
-            $('#kategori_id').on('change', function () {
-                dataBarang.ajax.reload(); // Reload DataTables
+            // Reload tabel ketika filter berubah
+            $('#kategori_id').on('change', function() {
+                dataBarang.ajax.reload();
             });
         });
     </script>

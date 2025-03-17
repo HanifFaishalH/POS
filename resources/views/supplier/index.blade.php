@@ -1,48 +1,71 @@
 @extends('layouts.template')
 
 @section('content')
-  <div class="card card-outline card-primary">
-    <div class="card-header">
-      <h3 class="card-title">{{ $page->title }}</h3>
-      <div class="card-tools">
-        <a href="{{ url('supplier/create') }}" class="btn btn-primary btn-sm">Tambah Supplier</a>
-      </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true">
+        <!-- Modal content will be loaded here -->
     </div>
-    <div class="card-body">
-      @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-      @endif
-      @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-      @endif
-      <table class="table table-bordered table-striped table-hover table-sm">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Kode Supplier</th>
-            <th>Nama Supplier</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach ($suppliers as $supplier)
-            <tr>
-              <td>{{ $supplier->supplier_id }}</td>
-              <td>{{ $supplier->supplier_kode }}</td>
-              <td>{{ $supplier->supplier_nama }}</td>
-              <td>
-                <a href="{{ url('supplier/' . $supplier->supplier_id) }}" class="btn btn-info btn-sm">Detail</a>
-                <a href="{{ url('supplier/' . $supplier->supplier_id . '/edit') }}" class="btn btn-warning btn-sm">Edit</a>
-                <form class="d-inline-block" method="POST" action="{{ url('supplier/' . $supplier->supplier_id) }}">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin menghapus data ini?');">Hapus</button>
-                </form>
-              </td>
-            </tr>
-          @endforeach
-        </tbody>
-      </table>
+    <div class="card card-outline card-primary">
+        <div class="card-header">
+            <h3 class="card-title">{{ $page->title }}</h3>
+            <div class="card-tools">
+                <a class="btn btn-sm btn-primary mt-1" href="{{ url('supplier/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('supplier/create_ajax') }}')" class="btn btn-sm btn-primary mt-1">Tambah Supplier</button>
+            </div>
+        </div>
+        <div class="card-body">
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+            <table class="table table-bordered table-striped table-hover table-sm" id="table_supplier">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Kode Supplier</th>
+                        <th>Nama Supplier</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
-  </div>
 @endsection
+
+@push('css')
+@endpush
+
+@push('js')
+    <script>
+        function modalAction(url = '') {
+            $('#myModal').load(url, function(response, status, xhr) {
+                if (status == "error") {
+                    $('#myModal').html('<div class="alert alert-danger">Gagal memuat konten. Silakan coba lagi.</div>');
+                }
+                $('#myModal').modal('show');
+            });
+        }
+
+        var dataSupplier;
+        $(document).ready(function() {
+            dataSupplier = $('#table_supplier').DataTable({
+                serverSide: true,
+                ajax: {
+                    url: "{{ url('supplier/list') }}",
+                    dataType: "json",
+                    type: "POST",
+                    data: function (d) {
+                        d._token = "{{ csrf_token() }}";
+                    }
+                },
+                columns: [
+                    { data: "supplier_id", name: "supplier_id" },
+                    { data: "supplier_kode", name: "supplier_kode" },
+                    { data: "supplier_nama", name: "supplier_nama" },
+                    { data: "aksi", name: "aksi", orderable: false, searchable: false }
+                ]
+            });
+        });
+    </script>
+@endpush

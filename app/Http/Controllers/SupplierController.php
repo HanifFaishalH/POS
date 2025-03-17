@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 
 use App\Models\SupplierModel;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class SupplierController extends Controller
 {
     public function index()
     {
-        // Ambil semua data supplier dari database
-        $suppliers = SupplierModel::all();
-
         $breadcrumb = (object) [
             'title' => 'Daftar Supplier',
             'list' => ['Home', 'Supplier']
@@ -27,30 +25,32 @@ class SupplierController extends Controller
         return view('supplier.index', [
             'breadcrumb' => $breadcrumb,
             'page' => $page,
-            'suppliers' => $suppliers, // Kirim data supplier ke view
             'activeMenu' => $activeMenu
         ]);
     }
 
-    public function create()
+    // Mengambil data supplier dalam bentuk JSON untuk DataTables
+    public function list(Request $request)
     {
-        $breadcrumb = (object) [
-            'title' => 'Tambah Supplier',
-            'list' => ['Home', 'Supplier', 'Tambah']
-        ];
+        $suppliers = SupplierModel::select('supplier_id', 'supplier_kode', 'supplier_nama');
 
-        $page = (object) [
-            'title' => 'Tambah supplier baru',
-        ];
+        // Filter berdasarkan supplier_kode
+        if ($request->supplier_kode) {
+            $suppliers->where('supplier_kode', 'like', '%' . $request->supplier_kode . '%');
+        }
 
-        $activeMenu = 'supplier';
-
-        return view('supplier.create', [
-            'breadcrumb' => $breadcrumb,
-            'page' => $page,
-            'activeMenu' => $activeMenu
-        ]);
+        return DataTables::of($suppliers)
+            ->addIndexColumn() // Menambahkan kolom index / no urut
+            ->addColumn('aksi', function ($supplier) { // Menambahkan kolom aksi
+                $btn = '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
+                return $btn;
+            })
+            ->rawColumns(['aksi']) // Memberitahu bahwa kolom aksi berisi HTML
+            ->make(true);
     }
+
 
     public function store(Request $request)
     {
@@ -156,5 +156,101 @@ class SupplierController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             return redirect('/supplier')->with('error', 'Data supplier gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
         }
+    }
+
+    public function create_ajax()
+    {
+        return view('supplier.create_ajax');
+    }
+
+    // Menyimpan data supplier baru (AJAX)
+    public function store_ajax(Request $request)
+    {
+        $request->validate([
+            'supplier_kode' => 'required|string|min:3|max:10|unique:m_supplier,supplier_kode',
+            'supplier_nama' => 'required|string|max:100',
+        ]);
+
+        $supplier = SupplierModel::create([
+            'supplier_kode' => $request->supplier_kode,
+            'supplier_nama' => $request->supplier_nama,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data supplier berhasil disimpan',
+            'data' => $supplier
+        ]);
+    }
+
+    public function edit_ajax($id)
+    {
+        $supplier = SupplierModel::find($id);
+
+        if (!$supplier) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data supplier tidak ditemukan'
+            ], 404);
+        }
+
+        return view('supplier.edit_ajax', compact('supplier'));
+    }
+
+    // Menyimpan perubahan data supplier (AJAX)
+    public function update_ajax(Request $request, $id)
+    {
+        $request->validate([
+            'supplier_kode' => 'required|string|min:3|max:10|unique:m_supplier,supplier_kode,' . $id . ',supplier_id',
+            'supplier_nama' => 'required|string|max:100',
+        ]);
+
+        $supplier = SupplierModel::find($id);
+
+        if (!$supplier) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data supplier tidak ditemukan'
+            ], 404);
+        }
+
+        $supplier->update([
+            'supplier_kode' => $request->supplier_kode,
+            'supplier_nama' => $request->supplier_nama,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data supplier berhasil diubah',
+            'data' => $supplier
+        ]);
+    }
+
+    // Menampilkan konfirmasi penghapusan (AJAX)
+    public function confirm_ajax($id)
+    {
+        $supplier = SupplierModel::find($id);
+
+        return view('supplier.confirm_ajax', ['supplier' => $supplier]);
+    }
+
+    // Menghapus data supplier (AJAX)
+    public function delete_ajax(Request $request,$id) {
+        if ($request->ajax() || $request->wantsJson()) {
+            $user = SupplierModel::find($id);
+            if ($user) {
+                $user->delete();
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'Data berhasil dihapus'
+                ]);
+            } else {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+        }
+        return redirect('/');
     }
 }

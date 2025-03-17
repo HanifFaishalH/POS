@@ -58,7 +58,10 @@
 @push('js')
     <script>
         function modalAction(url = '') {
-            $('#myModal').load(url, function() {
+            $('#myModal').load(url, function(response, status, xhr) {
+                if (status == "error") {
+                    $('#myModal').html('<div class="alert alert-danger">Gagal memuat konten. Silakan coba lagi.</div>');
+                }
                 $('#myModal').modal('show');
             });
         }

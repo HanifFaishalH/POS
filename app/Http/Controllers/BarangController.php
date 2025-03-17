@@ -36,25 +36,18 @@ class BarangController extends Controller
     // Ambil data user dalam bentuk json untuk datatables
     public function list(Request $request)
     {
-        DB::enableQueryLog();
-        $barang = BarangModel::select('barang_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual', 'kategori_id')
-            ->with(['kategori']); // Eager load relasi kategori
+        $barangs = BarangModel::with('kategori')->select('barang_id', 'kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual');
 
+        // Filter berdasarkan kategori_id
         if ($request->kategori_id) {
-            $barang->where('kategori_id', $request->kategori_id);
+            $barangs->where('kategori_id', $request->kategori_id);
         }
-
-    
-        return DataTables::of($barang)
+        return DataTables::of($barangs)
             ->addIndexColumn() // Menambahkan kolom index / no urut
             ->addColumn('aksi', function ($barang) { // Menambahkan kolom aksi
-                $btn = '<a href="' . url('/barang/' . $barang->barang_id) . '" class="btn btn-info btn-sm">Detail</a> ';
-                $btn .= '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                $btn .= '<form class="d-inline-block" method="POST" action="' . url('/barang/' . $barang->barang_id) . '">'
-                    . csrf_field()
-                    . method_field('DELETE')
-                    . '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button>'
-                    . '</form>';
+                $btn = '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
                 return $btn;
             })
             ->rawColumns(['aksi']) // Memberitahu bahwa kolom aksi berisi HTML
@@ -199,5 +192,115 @@ class BarangController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             return redirect('/barang')->with('error', 'Data barang gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
         }
+    }
+
+    public function create_ajax()
+    {
+        $kategori = KategoriModel::all(); // Ambil data kategori untuk dropdown
+        return view('barang.create_ajax', compact('kategori'));
+    }
+
+    // Menyimpan data barang baru (AJAX)
+    public function store_ajax(Request $request)
+    {
+        $request->validate([
+            'kategori_id' => 'required|integer',
+            'barang_kode' => 'required|string|min:3|max:10|unique:m_barang,barang_kode',
+            'barang_nama' => 'required|string|max:100',
+            'harga_beli' => 'required|integer',
+            'harga_jual' => 'required|integer',
+        ]);
+
+        $barang = BarangModel::create([
+            'kategori_id' => $request->kategori_id,
+            'barang_kode' => $request->barang_kode,
+            'barang_nama' => $request->barang_nama,
+            'harga_beli' => $request->harga_beli,
+            'harga_jual' => $request->harga_jual,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data barang berhasil disimpan',
+            'data' => $barang
+        ]);
+    }
+
+    public function edit_ajax($id)
+    {
+        $barang = BarangModel::find($id);
+        $kategori = KategoriModel::all(); // Ambil data kategori untuk dropdown
+
+        if (!$barang) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data barang tidak ditemukan'
+            ], 404);
+        }
+
+        return view('barang.edit_ajax', compact('barang', 'kategori'));
+    }
+
+    // Menyimpan perubahan data barang (AJAX)
+    public function update_ajax(Request $request, $id)
+    {
+        $request->validate([
+            'kategori_id' => 'required|integer',
+            'barang_kode' => 'required|string|min:3|max:10|unique:m_barang,barang_kode,' . $id . ',barang_id',
+            'barang_nama' => 'required|string|max:100',
+            'harga_beli' => 'required|integer',
+            'harga_jual' => 'required|integer',
+        ]);
+
+        $barang = BarangModel::find($id);
+
+        if (!$barang) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data barang tidak ditemukan'
+            ], 404);
+        }
+
+        $barang->update([
+            'kategori_id' => $request->kategori_id,
+            'barang_kode' => $request->barang_kode,
+            'barang_nama' => $request->barang_nama,
+            'harga_beli' => $request->harga_beli,
+            'harga_jual' => $request->harga_jual,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data barang berhasil diubah',
+            'data' => $barang
+        ]);
+    }
+
+    // Menampilkan konfirmasi penghapusan (AJAX)
+    public function confirm_ajax($id)
+    {
+        $barang = BarangModel::find($id);
+
+        return view('barang.confirm_ajax', ['barang' => $barang]);
+    }
+
+    // Menghapus data barang (AJAX)
+    public function delete_ajax(Request $request,$id) {
+        if ($request->ajax() || $request->wantsJson()) {
+            $user = BarangModel::find($id);
+            if ($user) {
+                $user->delete();
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'Data berhasil dihapus'
+                ]);
+            } else {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+        }
+        return redirect('/');
     }
 }
