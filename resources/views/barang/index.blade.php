@@ -80,7 +80,7 @@
                     }
                 },
                 columns: [
-                    { data: "barang_id", name: "barang_id" },
+                    { data: "DT_RowIndex", name: "DT_RowIndex", orderable: false},
                     { data: "kategori.kategori_nama", name: "kategori.kategori_nama" },
                     { data: "barang_kode", name: "barang_kode" },
                     { data: "barang_nama", name: "barang_nama" },

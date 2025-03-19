@@ -238,7 +238,7 @@ class BarangController extends Controller
             ], 404);
         }
 
-        return view('barang.edit_ajax', compact('barang', 'kategori'));
+        return view('barang.edit_ajax', ['barang' => $barang, 'kategori' => $kategori]);
     }
 
     // Menyimpan perubahan data barang (AJAX)
@@ -287,17 +287,24 @@ class BarangController extends Controller
     // Menghapus data barang (AJAX)
     public function delete_ajax(Request $request,$id) {
         if ($request->ajax() || $request->wantsJson()) {
-            $user = BarangModel::find($id);
-            if ($user) {
-                $user->delete();
-                return response()->json([
-                    'status'  => true,
-                    'message' => 'Data berhasil dihapus'
-                ]);
-            } else {
+            $barang = BarangModel::find($id);
+            try {
+                if ($barang) {
+                    $barang->delete();
+                    return response()->json([
+                        'status'  => true,
+                        'message' => 'Data berhasil dihapus'
+                    ]);
+                } else {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'Data tidak ditemukan'
+                    ]);
+                }
+            } catch (\Illuminate\Database\QueryException $e) {
                 return response()->json([
                     'status'  => false,
-                    'message' => 'Data tidak ditemukan'
+                    'message' => 'Data barang gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini'
                 ]);
             }
         }

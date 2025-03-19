@@ -286,16 +286,23 @@ class UserController extends Controller
     public function delete_ajax(Request $request,$id) {
         if ($request->ajax() || $request->wantsJson()) {
             $user = UserModel::find($id);
-            if ($user) {
+            try {
+                if ($user) {
                 $user->delete();
                 return response()->json([
                     'status'  => true,
                     'message' => 'Data berhasil dihapus'
                 ]);
-            } else {
+                } else {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'Data tidak ditemukan'
+                    ]);
+                }
+            } catch (\Illuminate\Database\QueryException $e) {
                 return response()->json([
                     'status'  => false,
-                    'message' => 'Data tidak ditemukan'
+                    'message' => 'Data user gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini'
                 ]);
             }
         }
