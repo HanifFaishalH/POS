@@ -79,7 +79,7 @@
                     }
                 },
                 columns: [
-                    { data: "user_id", name: "user_id" },
+                    { data: "DT_RowIndex", name: "DT_RowIndex", orderable: false},
                     { data: "username", name: "username" },
                     { data: "nama", name: "nama" },
                     { data: "level_id", name: "level_id" },
