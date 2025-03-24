@@ -53,7 +53,7 @@
             </li>
             <li class="nav-item">
                 <a href="{{ url('/supplier') }}" class="nav-link {{ ($activeMenu == 'supplier') ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-truck"></i> <!-- Ganti ikon jika diperlukan -->
+                    <i class="nav-icon fas fa-truck"></i>
                     <p>Data Supplier</p>
                 </a>
             </li>
@@ -72,8 +72,20 @@
                     <p>Transaksi Penjualan</p>
                 </a>
             </li>
+            <br>
+            
+            <!-- Tombol Logout -->
+            <li class="nav-item">
+                <form action="{{ url('/logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="nav-link btn btn-link text-left">
+                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                        <p>Logout</p>
+                    </button>
+                </form>
+            </li>
         </ul>
     </nav>
     <!-- /.sidebar-menu -->
-  </div>
-  <!-- /.sidebar -->
+</div>
+<!-- /.sidebar -->
