@@ -308,4 +308,37 @@ class UserController extends Controller
         }
         return redirect('/');
     }
+
+    public function loginPage() {
+        return view('auth.login');
+    }
+
+    public function registerPage() {
+        $levels = LevelModel::select('level_id', 'level_nama')->get(); // Ambil data level
+
+        return view('auth.register', ['levels' => $levels]);
+    }
+
+    public function register(Request $request) {
+        $validate = $request->validate([
+            'username' => 'required|string|unique:m_user,username|max:20',
+            'nama' => 'required|string|max:100',
+            'password' => 'required|min:6|confirmed', // Tambahkan konfirmasi password
+            'level_id' => 'required|integer',
+        ]);
+
+        // Lakukan validasi dan simpan data        
+
+        UserModel::create([
+            'username' => $request->username,
+            'nama' => $request->nama,
+            'password' => Hash::make($request->password),
+            'level_id' => $request->level_id
+        ]);
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Data user berhasil disimpan'
+        ]);
+    }
 }

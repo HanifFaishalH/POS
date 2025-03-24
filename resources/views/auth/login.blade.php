@@ -56,6 +56,9 @@
                 <button type="submit" class="btn btn-primary btn-block">Sign In</button>
               </div>
             </div>
+            <p class="mt-3 text-center">
+              Belum punya akun? <a href="{{ url('/register') }}">Daftar di sini</a>
+            </p>
           </form>
       </div>
     </div>

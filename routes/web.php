@@ -200,4 +200,8 @@ Route::middleware('auth')->group(function () {
 });
 
 
+Route::get('/register', [UserController::class, 'registerPage'])->name('register.page');
+Route::post('/register', [UserController::class, 'register'])->name('register');
+
+
 
