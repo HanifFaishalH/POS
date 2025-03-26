@@ -144,7 +144,7 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    Route::middleware(['authorize:STF,KSR'])->group(function () {
+    Route::middleware(['authorize:ADM,MNG,STF,KSR'])->group(function () {
         Route::group(['prefix' => 'supplier'], function () {
             Route::get('/', [SupplierController::class, 'index']);
             Route::post('/list', [SupplierController::class, 'list']);
