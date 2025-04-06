@@ -89,9 +89,11 @@
 {{-- jquery validation --}}
 <script src="{{ asset('adminlte/plugins/jquery-validation/jquery.validate.min.js')}}"></script>
 <script src="{{ asset('adminlte/plugins/jquery-validation/additional-methods.min.js') }} "></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 
 {{-- SweetAlert --}}
 <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js')}}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   // Setup CSRF token for AJAX requests
