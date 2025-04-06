@@ -54,7 +54,7 @@ $(document).ready(function() {
                 success: function(response) {
                     if(response.status) {
                         // If successful
-                        $('#myModal').modal('hide'); // Hide modal
+                        $('#modal-import').modal('hide'); // Hide modal
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
