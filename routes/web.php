@@ -9,6 +9,7 @@ use App\Http\Controllers\HomeCareController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LevelController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Monolog\Level;
+use Symfony\Component\HttpKernel\Profiler\Profile;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +58,8 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [WelcomeController::class, 'index'])->name('welcome'); // Halaman welcome dilindungi oleh middleware auth
+    Route::post('/profile/update-photo', [ProfileController::class, 'update_photo'])->name('profile.update_photo');
+
 
     Route::middleware(['authorize:ADM,MNG'])->group(function () {
         Route::group(['prefix' => 'level'], function () {
@@ -156,5 +160,5 @@ Route::middleware('auth')->group(function () {
 Route::get('/register', [UserController::class, 'registerPage'])->name('register.page');
 Route::post('/register', [UserController::class, 'register'])->name('register');
 
-
+Route::post('/welcome/update_photo', [WelcomeController::class, 'update_photo']);
 

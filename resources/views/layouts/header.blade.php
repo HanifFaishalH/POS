@@ -131,5 +131,56 @@
           <i class="fas fa-th-large"></i>
         </a>
       </li>
+      <li class="nav-item dropdown user-menu">
+        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+          <img src="{{ Auth::user()->photo ? asset('img/' . Auth::user()->photo) : asset('img/default.jpg') }}" class="user-image img-circle elevation-2" alt="User Image">
+          <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+          <!-- User image -->
+          <li class="user-header bg-primary">
+            <img src="{{ Auth::user()->photo ? asset('img/' . Auth::user()->photo) : asset('img/default.jpg') }}" class="img-circle elevation-2" alt="User Image">
+            <p>
+              {{ Auth::user()->name }}
+            </p>
+          </li>
+          <!-- Menu Body -->
+          <li class="user-footer">
+            <a href="#" class="btn btn-default btn-flat" data-toggle="modal" data-target="#changePhotoModal">Ganti Foto</a>
+            <a href="{{ url('/logout') }}" class="btn btn-default btn-flat float-right"
+               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Keluar</a>
+            <form id="logout-form" action="{{ url('/logout') }}" method="POST" style="display: none;">
+              @csrf
+            </form>
+          </li>
+        </ul>
+      </li>
     </ul>
   </nav>
+
+  <!-- Modal Ganti Foto Profil -->
+<div class="modal fade" id="changePhotoModal" tabindex="-1" role="dialog" aria-labelledby="changePhotoModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="profilePhotoForm" action="{{ route('profile.update_photo') }}" method="POST" enctype="multipart/form-data">
+      @csrf
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePhotoModalLabel">Ganti Foto Profil</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="profile_photo">Pilih Foto Profil Baru</label>
+            <input type="file" name="profile_photo" id="profile_photo" class="form-control-file" accept="image/*" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

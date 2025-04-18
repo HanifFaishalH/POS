@@ -89,7 +89,6 @@
 {{-- jquery validation --}}
 <script src="{{ asset('adminlte/plugins/jquery-validation/jquery.validate.min.js')}}"></script>
 <script src="{{ asset('adminlte/plugins/jquery-validation/additional-methods.min.js') }} "></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 
 {{-- SweetAlert --}}
 <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js')}}"></script>
@@ -102,6 +101,50 @@
       'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
   });
+  $(document).ready(function() {
+    $('#profilePhotoForm').on('submit', function(e) {
+        e.preventDefault();
+
+        let form = this;
+        let formData = new FormData(form);
+
+        $.ajax({
+            url: $(form).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    $('#changePhotoModal').modal('hide');
+
+                    // Update semua avatar user secara dinamis
+                    $('.user-image, .img-circle').attr('src', response.image_url + '?' + new Date().getTime());
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Gagal', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                if (xhr.responseJSON?.errors) {
+                    $.each(xhr.responseJSON.errors, function(key, value) {
+                        Swal.fire('Error', value[0], 'error');
+                    });
+                } else {
+                    Swal.fire('Error', 'Terjadi kesalahan saat upload.', 'error');
+                }
+            }
+        });
+    });
+});
+
 </script>
 @stack('js')
 </body>

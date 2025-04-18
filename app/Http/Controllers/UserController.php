@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 use function PHPUnit\Framework\returnSelf;
 
@@ -319,6 +321,7 @@ class UserController extends Controller
         return view('auth.register', ['levels' => $levels]);
     }
 
+
     public function register(Request $request) {
         $validate = $request->validate([
             'username' => 'required|string|unique:m_user,username|max:20',
@@ -341,4 +344,31 @@ class UserController extends Controller
             'message' => 'Data user berhasil disimpan'
         ]);
     }
+
+    // public function updatePhoto(Request $request)
+    // {
+    //     $request->validate([
+    //         'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048'
+    //     ]);
+
+    //     $user = UserModel::find(auth()->user()->user_id);
+
+    //     // Simpan file baru
+    //     if ($request->hasFile('foto')) {
+    //         // Hapus foto lama jika bukan default
+    //         if ($user->foto && Storage::exists($user->foto)) {
+    //             Storage::delete($user->foto);
+    //         }
+
+    //         $path = $request->file('foto')->store('foto-user');
+    //         $user->foto = $path;
+    //         $user->save();
+    //     }
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Foto profil berhasil diperbarui.',
+    //         'newPhotoUrl' => asset('storage/' . $user->foto)
+    //     ]);
+    // }
 }

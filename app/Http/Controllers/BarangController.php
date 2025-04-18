@@ -171,7 +171,7 @@ class BarangController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'file_barang' => ['required', 'file', 'mimes:xlsx', 'max:1024']
+                'file_barang' => ['required', 'file', 'mimes:xlsx,xls', 'max:2048'] // Tambah xls dan perbesar max size
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -179,62 +179,96 @@ class BarangController extends Controller
                 return response()->json([
                     'status' => false,
                     'message' => 'Validasi Gagal',
-                    'msgField' => $validator->errors()
-                ]);
+                    'errors' => $validator->errors()
+                ], 422); // Tambah HTTP status code
             }
 
             try {
                 $file = $request->file('file_barang');
+                $fileName = time().'_'.$file->getClientOriginalName(); // Tambah timestamp untuk unique filename
+                $filePath = public_path('files/barang/');
+                
+                // Buat direktori jika belum ada
+                if (!file_exists($filePath)) {
+                    mkdir($filePath, 0777, true);
+                }
+
+                // Pindahkan file ke folder tujuan
+                $file->move($filePath, $fileName);
+
+                // Baca file dari lokasi baru
                 $reader = IOFactory::createReader('Xlsx');
                 $reader->setReadDataOnly(true);
-                $spreadsheet = $reader->load($file->getRealPath());
+                $spreadsheet = $reader->load($filePath . $fileName);
                 $sheet = $spreadsheet->getActiveSheet();
                 $data = $sheet->toArray(null, false, true, true);
 
                 $insert = [];
+                $rowErrors = [];
+                
                 foreach ($data as $baris => $value) {
                     if ($baris > 1) { // Skip header row
-                        // Validasi sederhana kolom penting tidak kosong
-                        if (
-                            !empty($value['A']) &&
-                            !empty($value['B']) &&
-                            !empty($value['C']) &&
-                            !empty($value['D']) &&
-                            !empty($value['E'])
-                        ) {
-                            $insert[] = [
-                                'kategori_id' => $value['A'],
-                                'barang_kode' => $value['B'],
-                                'barang_nama' => $value['C'],
-                                'harga_beli' => $value['D'],
-                                'harga_jual' => $value['E'],
-                                'created_at' => now(),
-                            ];
+                        // Validasi kolom
+                        if (empty($value['A']) || empty($value['B']) || empty($value['C']) || 
+                            empty($value['D']) || empty($value['E'])) {
+                            $rowErrors[] = "Baris $baris: Data tidak lengkap";
+                            continue;
                         }
+
+                        // Validasi numerik untuk harga
+                        if (!is_numeric($value['D']) || !is_numeric($value['E'])) {
+                            $rowErrors[] = "Baris $baris: Format harga tidak valid";
+                            continue;
+                        }
+
+                        $insert[] = [
+                            'kategori_id' => $value['A'],
+                            'barang_kode' => $value['B'],
+                            'barang_nama' => $value['C'],
+                            'harga_beli' => (float)$value['D'],
+                            'harga_jual' => (float)$value['E'],
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
                     }
                 }
 
                 if (count($insert) > 0) {
-                    BarangModel::insertOrIgnore($insert);
-                    return response()->json([
+                    BarangModel::insert($insert); // Ganti insertOrIgnore dengan insert biasa
+                    
+                    $response = [
                         'status' => true,
-                        'message' => 'Data berhasil diimport'
-                    ]);
+                        'message' => 'Data berhasil diimport',
+                        'imported_count' => count($insert),
+                    ];
+                    
+                    if (!empty($rowErrors)) {
+                        $response['warning'] = 'Beberapa data tidak diimport';
+                        $response['errors'] = $rowErrors;
+                    }
+                    
+                    return response()->json($response);
                 } else {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Tidak ada data valid yang bisa diimport'
-                    ]);
+                        'message' => 'Tidak ada data valid yang bisa diimport',
+                        'errors' => $rowErrors
+                    ], 400);
                 }
             } catch (\Exception $e) {
+                \Log::error('Import Error: ' . $e->getMessage()); // Log error
                 return response()->json([
                     'status' => false,
-                    'message' => 'Terjadi kesalahan saat membaca file: ' . $e->getMessage()
-                ]);
+                    'message' => 'Terjadi kesalahan saat memproses file',
+                    'error' => $e->getMessage()
+                ], 500);
             }
         }
 
-        return redirect('/');
+        return response()->json([
+            'status' => false,
+            'message' => 'Permintaan tidak valid'
+        ], 400);
     }
 
     public function export_excel() {
