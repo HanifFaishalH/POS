@@ -55,6 +55,7 @@
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
+  
 
   @include('layouts.footer')
 
@@ -92,7 +93,6 @@
 
 {{-- SweetAlert --}}
 <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js')}}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   // Setup CSRF token for AJAX requests

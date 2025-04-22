@@ -7,10 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Stmt\Return_;
 use Yajra\DataTables\Facades\DataTables;
-use Yajra\DataTables\Html\Builder;
+use Illuminate\Support\Facades\Validator;
 
 class LevelController extends Controller
 {
+
     public function index()
     {
         $level = LevelModel::all();
@@ -184,22 +185,38 @@ class LevelController extends Controller
         return view('level.create_ajax');
     }
 
-    public function store_ajax(Request $request) {
-        $request->validate([
-            'level_kode' => 'required|string|min:3|unique:m_level,level_kode',
-            'level_nama' => 'required|string|max:100',
+    public function store_ajax(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'level_kode' => 'required|string|min:3|max:10|unique:m_level,level_kode',
+            'level_nama' => 'required|string|min:3|max:100'
         ]);
 
-        $level = LevelModel::create([
-            'level_kode' => $request->level_kode,
-            'level_nama' => $request->level_nama,
-        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+                'message' => 'Validasi gagal'
+            ], 422);
+        }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data level berhasil disimpan',
-            'data' => $level
-        ]);
+        try {
+            $level = LevelModel::create([
+                'level_kode' => $request->level_kode,
+                'level_nama' => $request->level_nama
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data level berhasil disimpan',
+                'data' => $level
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function edit_ajax($id)
