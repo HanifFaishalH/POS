@@ -182,7 +182,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/edit_ajax', [PenjualanController::class, 'edit_ajax']);
             Route::put('/{id}/update_ajax', [PenjualanController::class, 'update_ajax']);
             Route::get('/import', [PenjualanController::class, 'import']);
-            Route::post('/import', [PenjualanController::class, 'import_ajax']);
+            Route::post('/import_ajax', [PenjualanController::class, 'import_ajax']);
             Route::get('/export_excel', [PenjualanController::class, 'export_excel']);
             Route::get('/export_pdf', [PenjualanController::class, 'export_pdf']);
             Route::get('/{id}/delete_ajax', [PenjualanController::class, 'confirm_ajax']);

@@ -8,10 +8,13 @@ use Yajra\DataTables\Facades\DataTables;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use App\Models\BarangModel;
 use App\Models\KategoriModel;
 use App\Models\SupplierModel;
 use App\Models\UserModel;
+use App\Models\PenjualanModel;
+use App\Models\PenjualanDetailModel;
 
 
 class StokController extends Controller
@@ -109,38 +112,97 @@ class StokController extends Controller
     public function store_ajax(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            // Set stok_tanggal otomatis jika tidak ada
-            $data = $request->all();
-            if (empty($data['stok_tanggal'])) {
-                $data['stok_tanggal'] = now()->toDateString(); // Format: YYYY-MM-DD
-            }
-
-            $rules = [
-                'barang_id' => ['required', 'integer', 'exists:m_barang,barang_id'],
-                'user_id' => ['required', 'integer', 'exists:m_user,user_id'],
-                'stok_tanggal' => ['required', 'date'],
-                'stok_jumlah' => ['required', 'integer'],
-            ];
-
-            $validator = Validator::make($data, $rules);
+            // Validasi data utama
+            $validator = Validator::make($request->all(), [
+                'penjualan_kode' => 'required|string|max:20|unique:t_penjualan,penjualan_kode',
+                'penjualan_tanggal' => 'required|date',
+                'pembeli' => 'required|string|max:50',
+                'user_id' => 'required|integer|exists:m_user,user_id',
+                'items' => 'required|json'
+            ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Validasi Gagal',
                     'msgField' => $validator->errors()
-                ]);
+                ], 422);
             }
 
-            StokModel::create($data);
+            // Decode items
+            $items = json_decode($request->items, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Format items tidak valid'
+                ], 422);
+            }
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Data berhasil disimpan'
-            ]);
+            // Validasi items
+            $itemErrors = [];
+            foreach ($items as $index => $item) {
+                $itemValidator = Validator::make($item, [
+                    'barang_id' => 'required|integer|exists:m_barang,barang_id',
+                    'harga' => 'required|integer|min:1',
+                    'jumlah' => 'required|integer|min:1'
+                ]);
+
+                if ($itemValidator->fails()) {
+                    $itemErrors["items.$index"] = $itemValidator->errors()->all();
+                }
+            }
+
+            if (!empty($itemErrors)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi item gagal',
+                    'msgField' => ['items' => $itemErrors]
+                ], 422);
+            }
+
+            DB::beginTransaction();
+            try {
+                // Simpan penjualan utama
+                $penjualan = PenjualanModel::create([
+                    'penjualan_kode' => $request->penjualan_kode,
+                    'penjualan_tanggal' => $request->penjualan_tanggal,
+                    'pembeli' => $request->pembeli,
+                    'user_id' => $request->user_id
+                ]);
+
+                // Simpan detail penjualan
+                foreach ($items as $item) {
+                    PenjualanDetailModel::create([
+                        'penjualan_id' => $penjualan->penjualan_id,
+                        'barang_id' => $item['barang_id'],
+                        'harga' => $item['harga'],
+                        'jumlah' => $item['jumlah'],
+                        'subtotal' => $item['harga'] * $item['jumlah']
+                    ]);
+
+                    // Update stok barang
+                    BarangModel::where('barang_id', $item['barang_id'])
+                        ->decrement('stok', $item['jumlah']);
+                }
+
+                DB::commit();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Data penjualan berhasil disimpan',
+                    'data' => $penjualan
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Gagal menyimpan penjualan: ' . $e->getMessage()
+                ], 500);
+            }
         }
 
-        return redirect('/stok')->with('success', 'Data stok berhasil disimpan');
+        return redirect('/penjualan')->with('success', 'Data penjualan berhasil disimpan');
     }
 
     public function show_ajax($id) {

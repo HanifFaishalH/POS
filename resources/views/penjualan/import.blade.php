@@ -13,12 +13,13 @@
                 <div class="alert alert-info">
                     <h5><i class="icon fas fa-info-circle"></i> Petunjuk Format File</h5>
                     <ol>
-                        <li>Kolom A: Kode Barang (Harus sudah ada di database)</li>
-                        <li>Kolom B: Nama Pembeli</li>
-                        <li>Kolom C: Jumlah (Angka bulat positif)</li>
-                        <li>Kolom D: Tanggal Penjualan (Format YYYY-MM-DD)</li>
-                        <li>Kolom E: ID User (Harus sesuai dengan tabel <code>m_user</code>)</li>
-                    </ol>
+                        <li>Kolom A: Kode Penjualan (unik, contoh: PJ001)</li>
+                        <li>Kolom B: Tanggal Penjualan (format: YYYY-MM-DD)</li>
+                        <li>Kolom C: Nama Pembeli</li>
+                        <li>Kolom D: ID Barang (harus sesuai dengan data barang)</li>
+                        <li>Kolom E: Jumlah Barang (angka bulat positif)</li>
+                        <li>Kolom F: Harga Satuan (angka, tanpa tanda pemisah ribuan)</li>
+                    </ol>                    
                 </div>
 
                 <div class="form-group">

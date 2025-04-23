@@ -10,7 +10,6 @@
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <button onclick="modalAction('{{ url('penjualan/create_ajax') }}')" class="btn btn-sm btn-primary mt-1">Tambah Ajax</button>
-                <button onclick="modalAction('{{ url('penjualan/import') }}')" class="btn btn-sm btn-info mt-1"><i class="fas fa-file-import"></i> Import Excel</button>
                 <a href="{{ url('penjualan/export_excel') }}" class="btn btn-sm btn-primary mt-1"><i class="fa fa-file-excel"></i> Export Excel</a>
                 <a href="{{ url('penjualan/export_pdf') }}" class="btn btn-sm btn-warning mt-1"><i class="fa fa-file-pdf"></i> Export PDF</a>
             </div>

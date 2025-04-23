@@ -153,42 +153,46 @@
     
     // Submit form
     $('#form-tambah-penjualan').submit(function(e) {
-        e.preventDefault();
-        const form = $(this);
-        
-        // Validasi minimal 1 item dengan barang terpilih
-        let validItems = 0;
-        $('.select-barang').each(function() {
-            if ($(this).val()) validItems++;
+    e.preventDefault();
+    const form = $(this);
+
+    // Validasi minimal 1 item dengan barang terpilih
+    let validItems = 0;
+    $('.select-barang').each(function() {
+        if ($(this).val()) validItems++;
+    });
+
+    if (validItems === 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Minimal harus ada 1 item penjualan'
         });
-        
-        if (validItems === 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Minimal harus ada 1 item penjualan'
+        return false;
+    }
+
+    // Ambil barang_id dari item pertama (jika ada)
+    const firstBarangId = $('.item-row').first().find('.select-barang').val();
+    if (firstBarangId) {
+        $('input[name="penjualan_kode"]').val('TRX-' + firstBarangId);
+    }
+
+    // Kumpulkan data form
+    const formData = new FormData(form[0]);
+    const items = [];
+
+    $('.item-row').each(function(index) {
+        const barangId = $(this).find('[name="items['+index+'][barang_id]"]').val();
+        if (barangId) {
+            items.push({
+                barang_id: barangId,
+                harga: $(this).find('[name="items['+index+'][harga]"]').val(),
+                jumlah: $(this).find('[name="items['+index+'][jumlah]"]').val()
             });
-            return false;
         }
-        
-        // Kumpulkan data form
-        const formData = new FormData(form[0]);
-        const items = [];
-        
-        // Format data items
-        $('.item-row').each(function(index) {
-            const barangId = $(this).find('[name="items['+index+'][barang_id]"]').val();
-            if (barangId) {
-                items.push({
-                    barang_id: barangId,
-                    harga: $(this).find('[name="items['+index+'][harga]"]').val(),
-                    jumlah: $(this).find('[name="items['+index+'][jumlah]"]').val()
-                });
-            }
-        });
-        
-        // Tambahkan items ke formData
-        formData.append('items', JSON.stringify(items));
+    });
+
+    formData.append('items', JSON.stringify(items));
         
         // Kirim data via AJAX
         $.ajax({

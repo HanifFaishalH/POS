@@ -24,9 +24,18 @@
         .font-10 { font-size: 10pt; }
         .font-11 { font-size: 11pt; }
         .font-bold { font-weight: bold; }
-        .border-all, .border-all th, .border-all td { border: 1px solid; }
-        .border-bottom-header { border-bottom: 1px solid; }
-        img.image { width: auto; height: 80px; max-width: 150px; max-height: 150px; }
+        .border-all, .border-all th, .border-all td {
+            border: 1px solid;
+        }
+        .border-bottom-header {
+            border-bottom: 1px solid;
+        }
+        img.image {
+            width: auto;
+            height: 80px;
+            max-width: 150px;
+            max-height: 150px;
+        }
     </style>
 </head>
 <body>
@@ -49,19 +58,20 @@
 
     <div class="font-11">
         <span class="d-block">Tanggal Cetak: {{ date('d/m/Y H:i:s') }}</span>
-        <span class="d-block">Total Transaksi: {{ $penjualan->count() }}</span>
+        <span class="d-block">Total Transaksi: {{ count($penjualan) }}</span>
     </div>
 
     @foreach($penjualan as $p)
         @php
-            $totalHarga = $p->details->sum(fn($d) => $d->harga * $d->jumlah);
+            $totalItem = $p->detail->sum('jumlah');
+            $totalHarga = $p->detail->sum(fn($d) => $d->jumlah * $d->harga);
         @endphp
 
         <table style="margin-top: 20px; font-size: 11pt;">
             <tr><td><strong>Kode Penjualan:</strong> {{ $p->penjualan_kode }}</td></tr>
-            <tr><td><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($p->penjualan_tanggal)->format('d/m/Y') }}</td></tr>
-            <tr><td><strong>Pembeli:</strong> {{ $p->pembeli ?? '-' }}</td></tr>
-            <tr><td><strong>Kasir:</strong> {{ $p->user->nama ?? '-' }}</td></tr>
+            <tr><td><strong>Tanggal:</strong> {{ date('d/m/Y', strtotime($p->penjualan_tanggal)) }}</td></tr>
+            <tr><td><strong>Pembeli:</strong> {{ $p->pembeli }}</td></tr>
+            <tr><td><strong>User:</strong> {{ $p->user->nama ?? '-' }}</td></tr>
         </table>
 
         <table class="border-all font-11" style="margin-top: 5px;">
@@ -75,18 +85,18 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($p->details as $i => $d)
+                @foreach($p->detail as $i => $d)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $d->barang->barang_nama ?? '-' }}</td>
+                        <td>{{ $d->barang_nama }}</td>
                         <td class="text-center">{{ $d->jumlah }}</td>
-                        <td class="text-right">Rp {{ number_format($d->harga, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($d->harga * $d->jumlah, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($d->harga, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($d->jumlah * $d->harga, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
                 <tr>
                     <td colspan="4" class="text-right font-bold">Total</td>
-                    <td class="text-right font-bold">Rp {{ number_format($totalHarga, 0, ',', '.') }}</td>
+                    <td class="text-right font-bold">{{ number_format($totalHarga, 0, ',', '.') }}</td>
                 </tr>
             </tbody>
         </table>
