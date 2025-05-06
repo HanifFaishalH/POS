@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class KategoriModel extends Model
 {
@@ -17,5 +18,15 @@ class KategoriModel extends Model
     public function barang()
     {
         return $this->hasMany(BarangModel::class, 'kategori_id', 'kategori_id');
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [];
     }
 }

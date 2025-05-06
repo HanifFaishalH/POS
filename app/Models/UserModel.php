@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class UserModel extends Authenticatable implements JWTSubject
 {
@@ -16,21 +17,22 @@ class UserModel extends Authenticatable implements JWTSubject
     protected $table = 'm_user';
     protected $primaryKey = "user_id";
 
-    // Add 'photo' to fillable fields
     protected $fillable = ['level_id', 'username', 'nama', 'password', 'profile_photo_path', 'created_at', 'update_at'];
 
     protected $hidden = ['password'];
 
     protected $casts = ['password' => 'hashed'];
     
-    // Add accessor for photo URL
-    public function getProfilePhotoUrlAttribute()
+    // Accessor untuk URL foto profil
+    protected function photo(): Attribute
     {
-        if ($this->profile_photo_path) {
-            return Storage::url('img/' . $this->profile_photo_path);
-        }
-        return asset('default.png'); // fallback image
+        return Attribute::make(
+            get: fn ($value) => $value 
+                ? asset('img/' . $value) // Jika ada foto, buat URL dari folder img
+                : asset('img/default.png') // Jika tidak ada foto, gunakan default.png
+        );
     }
+
 
     public function level(): BelongsTo {
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
